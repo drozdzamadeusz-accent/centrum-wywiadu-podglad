@@ -1,0 +1,3 @@
+# Wersja podglądowa — nie do indeksowania.
+User-agent: *
+Disallow: /

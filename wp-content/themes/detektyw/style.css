@@ -1,0 +1,1694 @@
+/*
+Theme Name: Detektyw
+Theme URI: https://www.centrumwywiadu.pl
+Author: Centrum Wywiadu i Detektywistyki
+Author URI: https://www.centrumwywiadu.pl
+Description: Motyw blokowy dla biura detektywistycznego Centrum Wywiadu i Detektywistyki. Ciemna paleta zgodna z identyfikacją marki, fonty hostowane lokalnie, zero zewnętrznych żądań sieciowych, semantyczna struktura nagłówków i własny blok formularza kontaktowego bez zapisu zgłoszeń do bazy.
+Requires at least: 6.7
+Tested up to: 7.1
+Requires PHP: 7.4
+Version: 1.6.1
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: detektyw
+Tags: one-column, block-patterns, full-site-editing, custom-colors, custom-logo, editor-style, featured-images, accessibility-ready, translation-ready, wide-blocks
+*/
+
+/* ---------------------------------------------------------------------------
+   Ten plik zawiera wyłącznie to, czego nie da się wyrazić w theme.json.
+   Kolory, typografia, odstępy i układ są zdefiniowane w theme.json.
+   --------------------------------------------------------------------------- */
+
+/* Pominięcie nawigacji — widoczne tylko dla klawiatury */
+.skip-link {
+	position: absolute;
+	top: -100vh;
+	left: 0;
+	z-index: 100000;
+	padding: 0.75rem 1.25rem;
+	background: var(--wp--preset--color--accent);
+	color: var(--wp--preset--color--base);
+	font-family: var(--wp--preset--font-family--heading);
+	font-weight: 600;
+	text-decoration: none;
+}
+
+.skip-link:focus {
+	top: 0;
+}
+
+/* Widoczny fokus. Kolor akcentu ma 10,3:1 na tle grafitowym. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+	outline: 2px solid var(--wp--preset--color--accent);
+	outline-offset: 2px;
+	border-radius: 1px;
+}
+
+/* Odstęp podkreślenia — czytelniejszy przy diakrytykach polskich */
+:where(.entry-content, .wp-block-post-content) a:where(:not(.wp-element-button)) {
+	text-underline-offset: 0.2em;
+	text-decoration-thickness: 1px;
+}
+
+/* Nagłówki nie łamią się na sieroty */
+:where(h1, h2, h3, .wp-block-post-title) {
+	text-wrap: balance;
+}
+
+:where(p, li) {
+	text-wrap: pretty;
+}
+
+/* Sekcja hero — wysokość sterowana clamp-em, bez skryptu */
+.detektyw-hero {
+	position: relative;
+	/* Wysokość liczona od widocznej wysokości okna pomniejszonej o nagłówek
+	   i pasek uprawnień, żeby oba mieściły się na pierwszym ekranie bez
+	   przewijania. Jednostka svh, nie vh — na telefonach vh nie uwzględnia
+	   chowającego się paska adresu. */
+	min-height: clamp(20rem, calc(100svh - 11rem), 40rem);
+	/* Grid, nie flex: element flex dopasowuje szerokość do treści, co wybijało
+	   wnętrze sekcji z szyny. Element grida rozciąga się domyślnie. */
+	display: grid;
+	align-content: end;
+}
+
+/* Nakładka na zdjęcie hero: gwarantuje kontrast tekstu niezależnie od zdjęcia */
+.detektyw-hero::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: var(--wp--preset--gradient--hero-overlay);
+	pointer-events: none;
+}
+
+.detektyw-hero > * {
+	position: relative;
+	z-index: 1;
+}
+
+/* Pasek uprawnień: licencja / wpis / OC */
+/* Siatka o równych kolumnach, nie flex. Przy flexie każdy punkt zajmował tyle,
+   ile potrzebował, więc znaczniki nie stały w jednej linii pionowej. */
+.detektyw-trust-bar ul {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+	gap: 0.7rem 2rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Trzy równe kolumny zamiast auto-fit. Pasek dzieli z akapitami szynę 46rem,
+   a przy niej auto-fit z minimum 15rem wyliczał dwie kolumny — po usunięciu
+   pozycji „Tajemnica zawodowa” trzecia zostawała sama w drugim wierszu.
+   Wymuszone trzy kolumny mieszczą się w tej szynie co do piksela. */
+@media (min-width: 60rem) {
+	.detektyw-trust-bar ul {
+		grid-template-columns: repeat(3, 1fr);
+	}
+}
+
+.detektyw-trust-bar li {
+	display: grid;
+	grid-template-columns: 1.35rem 1fr;
+	align-items: start;
+	gap: 0.6rem;
+	margin: 0;
+	padding: 0;
+	color: var(--wp--preset--color--muted);
+	font-size: var(--wp--preset--font-size--small);
+	line-height: 1.45;
+}
+
+/* Ikona zamiast kwadratu — SVG w postaci data URI, więc bez dodatkowego
+   żądania sieciowego. Każda pozycja ma własny znak: pasek wymienia trzy różne
+   rzeczy (uprawnienie osobowe, wpis do rejestru, polisa), a powtórzony ptaszek
+   sugerował, że to trzy warianty tego samego. Wartość domyślna zostaje jako
+   zabezpieczenie, gdyby doszła pozycja bez własnej klasy. */
+.detektyw-trust-bar li::before {
+	content: "";
+	width: 1.35rem;
+	height: 1.35rem;
+	margin-top: -0.1rem;
+	background-color: currentColor;
+	color: var(--wp--preset--color--accent);
+	-webkit-mask: var(--detektyw-ikona-znak) center / contain no-repeat;
+	mask: var(--detektyw-ikona-znak) center / contain no-repeat;
+}
+
+/* Selektor musi zawierać `li`: reguła bazowa wyżej to
+   `.detektyw-trust-bar li::before`, więc samo `.klasa::before` ma niższą
+   specyficzność i wszystkie trzy pozycje dostawały ten sam znak. */
+.detektyw-trust-bar li.detektyw-trust-bar__licencja::before {
+	-webkit-mask-image: var(--detektyw-ikona-licencja);
+	mask-image: var(--detektyw-ikona-licencja);
+}
+
+.detektyw-trust-bar li.detektyw-trust-bar__rejestr::before {
+	-webkit-mask-image: var(--detektyw-ikona-rejestr);
+	mask-image: var(--detektyw-ikona-rejestr);
+}
+
+.detektyw-trust-bar li.detektyw-trust-bar__polisa::before {
+	-webkit-mask-image: var(--detektyw-ikona-polisa);
+	mask-image: var(--detektyw-ikona-polisa);
+}
+
+@supports not (mask: url("")) {
+	.detektyw-trust-bar li::before {
+		background: var(--wp--preset--color--accent);
+		border-radius: 50%;
+		width: 0.5rem;
+		height: 0.5rem;
+		margin-top: 0.45em;
+	}
+}
+
+/* Listy „co ustalamy" i „czego nie robimy" — znaczniki są dekoracyjne,
+   sens niesie tekst, dlatego generujemy je w CSS, a nie w treści. */
+.is-style-checklist,
+.is-style-limity {
+	list-style: none;
+	padding-left: 0;
+}
+
+.is-style-checklist li,
+.is-style-limity li {
+	position: relative;
+	padding-left: 1.9rem;
+	margin-bottom: 0.6rem;
+}
+
+.is-style-checklist li::before {
+	content: "";
+	position: absolute;
+	top: 0.45em;
+	left: 0.15rem;
+	width: 0.85rem;
+	height: 0.45rem;
+	border-left: 2px solid var(--wp--preset--color--accent);
+	border-bottom: 2px solid var(--wp--preset--color--accent);
+	transform: rotate(-45deg);
+}
+
+.is-style-limity li::before {
+	content: "";
+	position: absolute;
+	top: 0.68em;
+	left: 0.15rem;
+	width: 0.9rem;
+	height: 2px;
+	background: var(--wp--preset--color--muted);
+}
+
+/* FAQ na natywnym <details> — zero JavaScriptu, obsługa klawiatury z przeglądarki */
+.wp-block-details {
+	border-bottom: 1px solid var(--wp--preset--color--border);
+}
+
+.wp-block-details summary {
+	cursor: pointer;
+	padding-right: 2.5rem;
+	position: relative;
+	font-family: var(--wp--preset--font-family--heading);
+	font-size: var(--wp--preset--font-size--large);
+	font-weight: 500;
+	list-style: none;
+}
+
+.wp-block-details summary::-webkit-details-marker {
+	display: none;
+}
+
+.wp-block-details summary::after {
+	content: "";
+	position: absolute;
+	top: 0.35em;
+	right: 0.4rem;
+	width: 0.6rem;
+	height: 0.6rem;
+	border-right: 2px solid var(--wp--preset--color--accent);
+	border-bottom: 2px solid var(--wp--preset--color--accent);
+	transform: rotate(45deg);
+	transition: transform 0.15s ease;
+}
+
+.wp-block-details[open] summary::after {
+	transform: rotate(-135deg);
+}
+
+/* Miejsce na dane, których jeszcze nie ma. Celowo rzuca się w oczy,
+   żeby nie dało się opublikować strony z luką w treści. */
+.detektyw-placeholder {
+	border: 2px dashed var(--wp--preset--color--accent);
+	background: rgba(243, 184, 26, 0.08);
+	padding: 0.85rem 1.1rem;
+	font-family: var(--wp--preset--font-family--mono);
+	font-size: var(--wp--preset--font-size--small);
+	color: var(--wp--preset--color--accent);
+}
+
+.detektyw-placeholder::before {
+	content: "DO UZUPEŁNIENIA ";
+	font-weight: 700;
+	letter-spacing: 0.06em;
+}
+
+/* Numerowane kroki procesu */
+.detektyw-krok {
+	counter-increment: detektyw-krok;
+}
+
+.detektyw-krok > h3::before {
+	content: counter(detektyw-krok);
+	display: inline-block;
+	min-width: 2.1rem;
+	margin-right: 0.7rem;
+	color: var(--wp--preset--color--accent);
+	font-variant-numeric: tabular-nums;
+}
+
+.detektyw-proces {
+	counter-reset: detektyw-krok;
+}
+
+/* Logo w nagłówku */
+/* Logo: figura i link jako flex, plus line-height 0.
+   Bez tego link jest inline-block i siada na linii bazowej tekstu, więc pod
+   obrazkiem zostaje miejsce na wydłużenia dolne — figura była o 7 px wyższa
+   niż obrazek, a sam obrazek wypadał 3 px nad środkiem nagłówka. */
+.detektyw-logo {
+	display: flex;
+	align-items: center;
+	line-height: 0;
+}
+
+.detektyw-logo a {
+	display: flex;
+	align-items: center;
+}
+
+.detektyw-logo img,
+.detektyw-logo svg {
+	display: block;
+	width: auto;
+	height: clamp(2.1rem, 4.5vw, 2.75rem);
+}
+
+/* Telefon w nagłówku — nie zawija się i nie znika na wąskich ekranach */
+.detektyw-tel {
+	font-family: var(--wp--preset--font-family--heading);
+	font-size: var(--wp--preset--font-size--large);
+	font-weight: 600;
+	white-space: nowrap;
+	text-decoration: none;
+}
+
+/* Szanujemy ustawienie systemowe użytkownika */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}
+
+/* Druk: strona bywa drukowana do akt sprawy albo do rozmowy z prawnikiem */
+@media print {
+	body {
+		background: #fff !important;
+		color: #000 !important;
+		font-size: 11pt;
+	}
+
+	.detektyw-hero::before,
+	.wp-block-navigation,
+	.detektyw-cta,
+	.skip-link,
+	.wp-block-detektyw-contact-form {
+		display: none !important;
+	}
+
+	.wp-block-details[open] summary::after,
+	.wp-block-details summary::after {
+		display: none;
+	}
+
+	.wp-block-details > *:not(summary) {
+		display: block !important;
+	}
+
+	a[href^="http"]::after {
+		content: " (" attr(href) ")";
+		font-size: 9pt;
+		word-break: break-all;
+	}
+}
+
+/* ===========================================================================
+   JEDNA SZYNA TREŚCI
+   Wcześniej proza siedziała w wyśrodkowanym kontenerze 736 px, a siatki
+   i kolumny w kontenerze 1200 px. Na ekranie 1280 px dawało to dziesięć
+   różnych lewych krawędzi (40, 64, 272, 448, 660, 856…) i stąd wrażenie
+   chaosu. Teraz wszystko startuje z tej samej krawędzi, a czytelność
+   długich akapitów pilnuje ograniczona miara wyrażona w „em”, nie kontener.
+   =========================================================================== */
+
+/* Jedna miara dla całego tekstu, wyrażona w rem — nie w em.
+   To jest sedno: przy mierze w „em” każdy element o innym stopniu pisma
+   dostaje inną szerokość, a po wyśrodkowaniu — inną lewą krawędź. Jedna
+   wartość w rem sprawia, że akapit, nagłówek i lista mają dokładnie tę samą
+   szerokość, więc można je bezpiecznie wyśrodkować: kolumna tekstu stoi
+   pośrodku szyny, a nie przy jej lewej krawędzi. */
+main .is-layout-constrained
+	> :where(
+		p,
+		h1,
+		.wp-block-post-title,
+		.wp-block-breadcrumbs,
+		h2,
+		h3,
+		h4,
+		h5,
+		h6,
+		ul,
+		ol,
+		blockquote,
+		.wp-block-details,
+		.wp-block-buttons
+	) {
+	max-width: 46rem;
+}
+
+/* Elementy, które mają zajmować pełną szerokość szyny */
+main :where(.detektyw-trust-bar) ul,
+main :where(.wp-block-columns, .wp-block-column) :where(p, ul, ol, h3),
+main :where(.wp-block-group[class*="is-layout-grid"]) :where(p, ul, ol, h3),
+main :where(.wp-block-query) :where(p, ul, ol) {
+	max-width: none;
+}
+
+/* Listy w dwóch kolumnach, gdy jest na to miejsce. Długa lista jednokolumnowa
+   ciągnęła się przy lewej krawędzi i zostawiała pustą prawą połowę.
+   Zapis „columns: 20rem 2” sam schodzi do jednej kolumny w wąskich
+   pojemnikach, np. w kaflach i panelach. */
+@media (min-width: 900px) {
+	main .is-style-checklist,
+	main .is-style-limity {
+		columns: 20rem 2;
+		column-gap: 2.75rem;
+	}
+
+	main .is-style-checklist li,
+	main .is-style-limity li {
+		break-inside: avoid;
+		margin-bottom: 0.75rem;
+	}
+}
+
+/* Grupowanie: nagłówek trzyma się swojej treści, a oddziela od poprzedniej */
+main :where(h2, h3) + * {
+	margin-block-start: 0.9rem !important;
+}
+
+main :where(p, ul, ol, .wp-block-details) + :where(h2) {
+	margin-block-start: 2.75rem !important;
+}
+
+main :where(p, ul, ol) + :where(h3) {
+	margin-block-start: 2rem !important;
+}
+
+/* Sekcja hero jest kompozycją z sylwetką po prawej — tam tekst zostaje
+   przy lewej krawędzi, bo prawą stronę równoważy postać. */
+.detektyw-hero > * {
+	margin-left: 0 !important;
+	margin-right: auto !important;
+	margin-block-start: 1rem !important;
+}
+
+.detektyw-hero > :first-child {
+	margin-block-start: 0 !important;
+}
+
+/* Brak szczeliny pod nagłówkiem. Rdzeń wstawia margines
+   :where(.wp-site-blocks) > * o wysokości spacing|30 (24 px) — to on tworzył
+   pasek tła między kreską pod logo a zdjęciem w hero. */
+.wp-site-blocks > * {
+	margin-block-start: 0;
+}
+
+/* Ten sam margines rozdzielał sekcje pełnoszerokościowe. Każda z nich ma
+   własne wypełnienie pionowe, więc dodatkowy odstęp tylko rozjeżdżał tła
+   (widać go było jako pasek między zdjęciem hero a paskiem uprawnień). */
+.entry-content > .alignfull {
+	margin-block-start: 0 !important;
+}
+
+/* ===========================================================================
+   NAGŁÓWEK PRZYKLEJONY
+   =========================================================================== */
+
+header.wp-block-template-part {
+	position: sticky;
+	top: 0;
+	/*
+	 * Warstwa wyżej niż panel ułatwień (9990) i komunikat o cookies (9991).
+	 * Powód: nagłówek jest przyklejony, więc tworzy kontekst nakładania,
+	 * a nakładka menu mobilnego jest jego POTOMKIEM — jej z-index 100000
+	 * z rdzenia liczy się wewnątrz tego kontekstu, nie globalnie. Przy
+	 * poprzedniej wartości 50 moje warstwy pływające malowały się nad
+	 * otwartym menu i przechwytywały dotknięcia na telefonie.
+	 */
+	z-index: 9995;
+	transition: box-shadow 0.25s ease;
+}
+
+/*
+ * Tło i rozmycie idą na pseudoelement, nie na sam nagłówek.
+ * Powód jest konkretny: backdrop-filter tworzy blok kontenerowy dla
+ * potomków z position: fixed. Nakładka menu mobilnego z rdzenia jest
+ * właśnie taka — z filtrem na nagłówku pozycjonowała się względem paska
+ * nagłówka, a nie okna, więc menu było przycięte do wysokości paska.
+ */
+header.wp-block-template-part::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	background-color: rgba(35, 31, 32, 0.92);
+	transition: background-color 0.25s ease;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+	header.wp-block-template-part::before {
+		background-color: rgba(35, 31, 32, 0.76);
+		backdrop-filter: blur(12px) saturate(1.1);
+	}
+}
+
+.detektyw-header {
+	padding-block: 1rem;
+	transition: padding-block 0.25s ease;
+}
+
+/* ---------------------------------------------------------------------------
+   Nagłówek w jednym wierszu.
+   Szyna treści ma 68rem, a logo, menu, telefon i przycisk potrzebowały 1119 px
+   — o 31 px za dużo, więc grupa z menu zawijała się pod logo. Zabrakło dokładnie
+   tyle, ile urósł numer telefonu po dodaniu prefiksu „+48”. Zamiast zmniejszać
+   typografię ściągamy odstępy w samym nagłówku: trzy przerwy między grupami
+   z 1,5rem na 1rem i przerwa między pozycjami menu z 1,5rem na 1,15rem. Daje to
+   ok. 60 px zapasu, więc wiersz nie stoi tuż przy granicy zawinięcia.
+   --------------------------------------------------------------------------- */
+.detektyw-header .wp-block-group {
+	gap: 1rem;
+}
+
+.detektyw-header .wp-block-navigation {
+	--wp--style--block-gap: 1.15rem;
+}
+
+.detektyw-header .wp-block-navigation__container {
+	gap: 1.15rem;
+}
+
+/* Menu rozwijane aż do 1200 px.
+   Rdzeń przełącza nawigację na przycisk dopiero poniżej 600 px, a poziome menu
+   z siedmiu pozycji razem z logo, telefonem i przyciskiem potrzebuje ok. 1250 px.
+   Między 600 a 1250 px grupa z menu spadała pod logo — na laptopach i tabletach
+   nagłówek łamał się na dwa wiersze. Podniesienie progu sprawia, że w tym
+   zakresie widać przycisk menu, a telefon i „Kontakt” zostają na wierzchu. */
+@media (min-width: 600px) and (max-width: 74.99rem) {
+	.detektyw-header .wp-block-navigation__responsive-container:not(.is-menu-open) {
+		display: none;
+	}
+
+	.detektyw-header .wp-block-navigation__responsive-container-open:not(.always-shown) {
+		display: flex;
+	}
+}
+
+/* Stan po przewinięciu — nagłówek robi się niższy i odcina się cieniem */
+body.is-scrolled header.wp-block-template-part {
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+body.is-scrolled header.wp-block-template-part::before {
+	background-color: rgba(35, 31, 32, 0.97);
+}
+
+body.is-scrolled .detektyw-header {
+	padding-block: 0.5rem;
+}
+
+body.is-scrolled .detektyw-logo img,
+body.is-scrolled .detektyw-logo svg {
+	height: clamp(1.8rem, 3.6vw, 2.2rem);
+}
+
+.detektyw-logo img,
+.detektyw-logo svg {
+	transition: height 0.25s ease;
+}
+
+/* Zakotwiczenia nie mogą chować się pod przyklejonym nagłówkiem */
+:where([id]) {
+	scroll-margin-top: 6.5rem;
+}
+
+/* ===========================================================================
+   MENU
+   =========================================================================== */
+
+.wp-block-navigation .wp-block-navigation-item > a {
+	position: relative;
+	padding-block: 0.4rem;
+	text-decoration: none;
+}
+
+/* Podkreślenie „wjeżdża” od lewej: hover, fokus i strona bieżąca */
+.wp-block-navigation .wp-block-navigation-item > a::after {
+	content: "";
+	position: absolute;
+	right: 100%;
+	bottom: 0;
+	left: 0;
+	height: 2px;
+	background: var(--wp--preset--color--accent);
+	transition: right 0.28s cubic-bezier(0.22, 0.7, 0.25, 1);
+}
+
+.wp-block-navigation .wp-block-navigation-item > a:hover::after,
+.wp-block-navigation .wp-block-navigation-item > a:focus-visible::after,
+.wp-block-navigation .wp-block-navigation-item.current-menu-item > a::after,
+.wp-block-navigation .wp-block-navigation-item.current-menu-ancestor > a::after {
+	right: 0;
+}
+
+.wp-block-navigation .wp-block-navigation-item.current-menu-item > a,
+.wp-block-navigation .wp-block-navigation-item.current-menu-ancestor > a {
+	color: var(--wp--preset--color--accent);
+}
+
+/* Podmenu „Usługi” */
+.wp-block-navigation .wp-block-navigation-submenu__toggle {
+	padding-block: 0.4rem;
+}
+
+.wp-block-navigation .wp-block-navigation__submenu-container {
+	border: 1px solid var(--wp--preset--color--border);
+	background-color: var(--wp--preset--color--surface);
+	box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+	min-width: 17rem;
+}
+
+.wp-block-navigation .wp-block-navigation__submenu-container .wp-block-navigation-item > a {
+	padding: 0.55rem 1rem;
+	width: 100%;
+}
+
+.wp-block-navigation .wp-block-navigation__submenu-container .wp-block-navigation-item > a::after {
+	left: 1rem;
+	right: 100%;
+	bottom: 0.35rem;
+}
+
+.wp-block-navigation
+	.wp-block-navigation__submenu-container
+	.wp-block-navigation-item
+	> a:hover::after {
+	right: 1rem;
+}
+
+/* Przycisk kontaktu w nagłówku */
+.detektyw-header-cta .wp-block-button__link {
+	padding: 0.55rem 1.1rem;
+	font-size: var(--wp--preset--font-size--small);
+}
+
+/* ---------------------------------------------------------------------------
+   NAKŁADKA MENU NA MOBILE
+   Kolory ustawia sam blok nawigacji (atrybuty overlayBackgroundColor
+   i overlayTextColor we wzorcu nagłówka) — bez nich rdzeń używa własnych
+   domyślnych barw i tekst na ciemnym tle jest praktycznie nieczytelny.
+   Tutaj tylko odstępy i hierarchia.
+   --------------------------------------------------------------------------- */
+
+.wp-block-navigation__responsive-container.is-menu-open {
+	padding: 4.25rem clamp(1.25rem, 6vw, 2.5rem) 3rem !important;
+	/* Nakładka jest elementem flex w nagłówku, więc mogłaby odziedziczyć
+	   margines z blockGap. Przy position: fixed to niepożądane. */
+	margin: 0 !important;
+}
+
+.wp-block-navigation__responsive-container.is-menu-open
+	.wp-block-navigation__responsive-container-content {
+	padding-top: 0;
+}
+
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item > a {
+	font-size: var(--wp--preset--font-size--x-large);
+	padding-block: 0.55rem;
+}
+
+/* W nakładce podkreślenie „wjeżdżające od lewej” nie ma sensu — pozycje są
+   ułożone pionowo. Zostaje wyróżnienie strony bieżącej kolorem. */
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item > a::after {
+	display: none;
+}
+
+/* Podmenu: płaskie, z lewą linią pokazującą zagnieżdżenie */
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation__submenu-container {
+	border: 0;
+	border-left: 1px solid var(--wp--preset--color--border);
+	background-color: transparent;
+	box-shadow: none;
+	min-width: 0;
+	margin-left: 0.25rem;
+	padding-left: 1rem !important;
+}
+
+.wp-block-navigation__responsive-container.is-menu-open
+	.wp-block-navigation__submenu-container
+	.wp-block-navigation-item
+	> a {
+	padding-left: 0;
+	font-size: var(--wp--preset--font-size--large);
+}
+
+/* Przycisk zamknięcia: nad treścią i odsunięty od krawędzi */
+.wp-block-navigation__responsive-container-close {
+	z-index: 3;
+	top: 1.1rem;
+	right: clamp(1.25rem, 6vw, 2.5rem);
+}
+
+.wp-block-navigation__responsive-container-open {
+	color: var(--wp--preset--color--contrast);
+}
+
+/* ===========================================================================
+   POJAWIANIE SIĘ ELEMENTÓW PRZY PRZEWIJANIU
+   Klasy nadaje JavaScript, więc bez skryptu treść jest po prostu widoczna.
+   =========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+	.detektyw-reveal {
+		opacity: 0;
+		transform: translateY(22px);
+		transition: opacity 0.65s ease, transform 0.65s cubic-bezier(0.22, 0.7, 0.25, 1);
+	}
+
+	.detektyw-reveal.is-visible {
+		opacity: 1;
+		transform: none;
+	}
+
+	/* Kafle i kroki wchodzą kaskadą */
+	.detektyw-reveal[style*="--detektyw-delay"] {
+		transition-delay: var(--detektyw-delay);
+	}
+}
+
+/* ===========================================================================
+   ZACHĘTA DO PRZEWINIĘCIA W SEKCJI HERO
+   =========================================================================== */
+
+.detektyw-scroll-cue {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.6rem;
+	margin-top: var(--wp--preset--spacing--40, 2.5rem);
+	color: var(--wp--preset--color--muted);
+	font-family: var(--wp--preset--font-family--heading);
+	font-size: var(--wp--preset--font-size--small);
+	letter-spacing: 0.08em;
+	text-decoration: none;
+	text-transform: uppercase;
+}
+
+.detektyw-scroll-cue:hover,
+.detektyw-scroll-cue:focus-visible {
+	color: var(--wp--preset--color--accent);
+}
+
+.detektyw-scroll-cue::after {
+	content: "";
+	width: 0.55rem;
+	height: 0.55rem;
+	border-right: 2px solid currentColor;
+	border-bottom: 2px solid currentColor;
+	transform: rotate(45deg) translateY(-0.1rem);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.detektyw-scroll-cue::after {
+		animation: detektyw-cue 1.9s ease-in-out infinite;
+	}
+}
+
+@keyframes detektyw-cue {
+	0%,
+	100% {
+		transform: rotate(45deg) translate(-0.15rem, -0.25rem);
+		opacity: 0.55;
+	}
+
+	50% {
+		transform: rotate(45deg) translate(0.1rem, 0.05rem);
+		opacity: 1;
+	}
+}
+
+/* ===========================================================================
+   CELOWNIK POD KURSOREM
+   Ozdoba wzięta z logo marki — ramka kadrowania wokół linii papilarnej.
+   Podąża za kursorem, a nad elementem interaktywnym „zatrzaskuje się”
+   na jego prostokącie, pełniąc rolę ruchomego obrysu.
+   Wyłączona przy urządzeniach dotykowych i przy ograniczonym ruchu.
+   =========================================================================== */
+
+.detektyw-reticle {
+	position: fixed;
+	top: 0;
+	left: 0;
+	z-index: 9998;
+	width: 44px;
+	height: 44px;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.3s ease, width 0.22s ease, height 0.22s ease;
+	will-change: transform;
+}
+
+.detektyw-reticle.is-active {
+	opacity: 1;
+}
+
+.detektyw-reticle.is-locked {
+	opacity: 1;
+}
+
+.detektyw-reticle span {
+	position: absolute;
+	width: 11px;
+	height: 11px;
+	border: 2px solid var(--wp--preset--color--accent);
+	transition: inset 0.22s ease;
+}
+
+.detektyw-reticle span:nth-child(1) {
+	top: 0;
+	left: 0;
+	border-right: 0;
+	border-bottom: 0;
+}
+
+.detektyw-reticle span:nth-child(2) {
+	top: 0;
+	right: 0;
+	border-bottom: 0;
+	border-left: 0;
+}
+
+.detektyw-reticle span:nth-child(3) {
+	bottom: 0;
+	left: 0;
+	border-top: 0;
+	border-right: 0;
+}
+
+.detektyw-reticle span:nth-child(4) {
+	right: 0;
+	bottom: 0;
+	border-top: 0;
+	border-left: 0;
+}
+
+/* Linia skanująca w środku celownika */
+.detektyw-reticle::before {
+	content: "";
+	position: absolute;
+	left: 14%;
+	right: 14%;
+	top: 50%;
+	height: 1px;
+	background: linear-gradient(
+		90deg,
+		transparent,
+		var(--wp--preset--color--accent),
+		transparent
+	);
+	opacity: 0.7;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.detektyw-reticle:not(.is-locked)::before {
+		animation: detektyw-scan 2.4s ease-in-out infinite;
+	}
+}
+
+@keyframes detektyw-scan {
+	0%,
+	100% {
+		top: 22%;
+		opacity: 0.25;
+	}
+
+	50% {
+		top: 78%;
+		opacity: 0.85;
+	}
+}
+
+@media (hover: none), (pointer: coarse) {
+	.detektyw-reticle {
+		display: none;
+	}
+}
+
+/* ===========================================================================
+   FORMULARZ — WARSTWA INTERAKCJI
+   =========================================================================== */
+
+.detektyw-form__row {
+	position: relative;
+}
+
+.detektyw-form input[type="text"],
+.detektyw-form textarea {
+	transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.detektyw-form input[type="text"]:focus,
+.detektyw-form textarea:focus {
+	background-color: #332e2f;
+	box-shadow: 0 0 0 3px rgba(243, 184, 26, 0.16);
+	outline: none;
+}
+
+.detektyw-form__row:focus-within > label {
+	color: var(--wp--preset--color--accent);
+}
+
+/* Licznik znaków — dopisywany skryptem, więc bez JS nic nie brakuje */
+.detektyw-form__count {
+	display: block;
+	margin-top: 0.3rem;
+	color: var(--wp--preset--color--muted);
+	font-family: var(--wp--preset--font-family--mono);
+	font-size: var(--wp--preset--font-size--small);
+}
+
+.detektyw-form__count.is-ok {
+	color: var(--wp--preset--color--accent);
+}
+
+.detektyw-form button[type="submit"] {
+	transition: transform 0.15s ease, background-color 0.2s ease;
+}
+
+.detektyw-form button[type="submit"]:active {
+	transform: translateY(1px);
+}
+
+.detektyw-form.is-sending button[type="submit"] {
+	opacity: 0.6;
+	pointer-events: none;
+}
+
+/* Kafle i panele reagują na kursor */
+.entry-content .wp-block-group[class*="is-layout-grid"] > .wp-block-group {
+	transition: transform 0.25s ease, border-color 0.25s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.entry-content .wp-block-group[class*="is-layout-grid"] > .wp-block-group:hover {
+		transform: translateY(-4px);
+	}
+}
+
+/* Płynne dojście do zakotwiczenia — tylko gdy użytkownik nie ogranicza ruchu */
+@media (prefers-reduced-motion: no-preference) {
+	html {
+		scroll-behavior: smooth;
+	}
+}
+
+/* Na wąskich ekranach w nagłówku zostaje logo, telefon i menu.
+   Przycisk kontaktu byłby czwartym elementem i rozbijał nagłówek na dwa
+   wiersze. Selektor musi być bardziej szczegółowy niż .wp-block-buttons
+   z rdzenia, bo tamten arkusz wczytuje się później. */
+/* Na desktopie Kontakt jest przyciskiem, więc pozycja w menu byłaby dublem */
+@media (min-width: 782px) {
+	.wp-block-navigation-item.detektyw-nav-kontakt {
+		display: none;
+	}
+}
+
+@media (max-width: 781px) {
+	.detektyw-header .detektyw-header-cta {
+		display: none;
+	}
+
+	/* Mniejsze logo, żeby nagłówek zmieścił się w jednym wierszu */
+	.detektyw-logo img,
+	.detektyw-logo svg {
+		height: 1.7rem;
+	}
+
+	body.is-scrolled .detektyw-logo img,
+	body.is-scrolled .detektyw-logo svg {
+		height: 1.45rem;
+	}
+
+	.detektyw-tel {
+		font-size: var(--wp--preset--font-size--medium);
+	}
+}
+
+/* Druk i awaryjne odsłonięcie: treść nigdy nie może zostać niewidoczna */
+@media print {
+	.detektyw-reveal {
+		opacity: 1 !important;
+		transform: none !important;
+	}
+}
+
+/* Gdy skrypt się nie wykona, klasa .detektyw-reveal nigdy nie zostanie nadana,
+   więc treść jest widoczna domyślnie. Ta reguła zabezpiecza odwrotny przypadek:
+   klasa nadana, ale animacja nieukończona po dłuższym czasie. */
+@media (prefers-reduced-motion: no-preference) {
+	.detektyw-reveal {
+		animation: detektyw-failsafe 0s linear 20s forwards;
+	}
+}
+
+@keyframes detektyw-failsafe {
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+/* ===========================================================================
+   LISTA NUMEROWANA „FUNDAMENTY NASZEJ PRACY”
+   Numer w akcencie i wyciągnięty na margines, żeby nie zlewał się z tekstem
+   pozycji. Licznik własny, bo znacznik ::marker nie przyjmuje w Safari
+   części właściwości typografii.
+   =========================================================================== */
+
+main .is-style-fundamenty {
+	counter-reset: detektyw-fundament;
+	margin-top: var(--wp--preset--spacing--30, 1.5rem);
+	padding: 0;
+	list-style: none;
+}
+
+main .is-style-fundamenty > li {
+	counter-increment: detektyw-fundament;
+	position: relative;
+	margin: 0 0 1.1rem;
+	padding-left: 2.6rem;
+}
+
+main .is-style-fundamenty > li::before {
+	content: counter(detektyw-fundament);
+	position: absolute;
+	left: 0;
+	top: 0.05em;
+	color: var(--wp--preset--color--accent);
+	font-family: var(--wp--preset--font-family--heading);
+	font-size: 1.05rem;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.4;
+}
+
+/* Podpis autora — najdrobniejszy element w dokumencie, celowo o stopień
+   mniejszy od reszty stopki i bez własnego odstępu górnego, żeby nie zaczął
+   konkurować z notą o prawach autorskich nad nim. */
+.detektyw-autor {
+	margin-block: 1.25rem 0;
+	font-size: 0.72rem;
+	letter-spacing: 0.02em;
+	opacity: 0.75;
+}
+
+/* ===========================================================================
+   PASEK UPRAWNIEŃ W STOPCE
+   Same napisy — znaki graficzne Policji, MSWiA i ubezpieczyciela zniknęły
+   na życzenie klienta. Kreski między pozycjami rysuje CSS, więc przy zawijaniu
+   na wąskich ekranach nie zostaje wisząca kreska na końcu wiersza (co by się
+   stało, gdyby separator był znakiem w treści).
+   =========================================================================== */
+
+.detektyw-znaki .detektyw-uprawnienia {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.35rem 1.1rem;
+	margin: 0.85rem 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.detektyw-znaki .detektyw-uprawnienia li {
+	display: flex;
+	align-items: center;
+	gap: 1.1rem;
+	margin: 0;
+	color: var(--wp--preset--color--muted);
+	font-family: var(--wp--preset--font-family--heading);
+	font-size: 0.78rem;
+	letter-spacing: 0.06em;
+	line-height: 1.5;
+	text-transform: uppercase;
+}
+
+/* Kreska po każdej pozycji poza ostatnią. */
+.detektyw-znaki .detektyw-uprawnienia li:not(:last-child)::after {
+	content: "";
+	width: 1px;
+	height: 0.95em;
+	background: var(--wp--preset--color--border);
+}
+
+/* ===========================================================================
+   PASEK „WSPÓŁPRACA Z PRAWNIKAMI”
+   Stoi nad stopką, więc pojawia się na każdej podstronie. Treść na życzenie
+   klienta ograniczona do jednego zdania — zastrzeżenie o nieświadczeniu
+   pomocy prawnej zostało usunięte jego decyzją.
+   =========================================================================== */
+
+.detektyw-prawnicy h2 {
+	margin-bottom: 0.5rem;
+}
+
+.detektyw-prawnicy p {
+	margin-block: 0.5rem 0;
+}
+
+/* ===========================================================================
+   SYLWETKI DETEKTYWA W SEKCJI HERO — ODSTAWIONE
+   Znaczniki `.detektyw-figury` zniknęły ze strony głównej: klient dostarczy
+   zdjęcia od fotografa i wtedy slider wróci. Reguły zostają nietknięte, bo
+   mają wrócić razem z nim; dopóki w treści nie ma tego kontenera, nic z tego
+   bloku nie ma na czym zadziałać. Wraz ze znacznikami zniknęły zmienne
+   --detektyw-figura-* z inc/assets.php i trzeba je będzie przywrócić.
+   Trzy ujęcia przenikające się w pętli. Świadomie nie jest to slider
+   z JavaScriptem: obrazy są tłem warstw CSS, przenikanie robi animacja,
+   nie ma więc żadnego skryptu, przycisków ani ryzyka przesunięcia układu.
+   Reguła z obrazami siedzi w zapytaniu medialnym, dzięki czemu na telefonie
+   te pliki w ogóle się nie pobierają — przeglądarka nie ściąga teł
+   z niedopasowanych media queries.
+   =========================================================================== */
+
+.detektyw-figury {
+	display: none;
+}
+
+@media (min-width: 900px) {
+	.detektyw-figury {
+		display: block;
+		position: absolute;
+		/* prawa krawędź sylwetki równo z prawą krawędzią szyny treści —
+		   na szerokim ekranie sylwetka nie ucieka na sam brzeg okna */
+		right: max(0px, calc((100% - 68rem) / 2));
+		bottom: 0;
+		width: min(34rem, 42%);
+		height: min(88%, 36rem);
+		pointer-events: none;
+		user-select: none;
+	}
+
+	.detektyw-figury span {
+		position: absolute;
+		inset: 0;
+		background-position: right bottom;
+		background-repeat: no-repeat;
+		background-size: contain;
+		opacity: 0;
+		animation: detektyw-figury 21s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+	}
+
+	.detektyw-figury span:nth-child(1) {
+		background-image: var(--detektyw-figura-postawa);
+		animation-delay: 0s;
+	}
+
+	.detektyw-figury span:nth-child(2) {
+		background-image: var(--detektyw-figura-analiza);
+		animation-delay: 7s;
+	}
+
+	.detektyw-figury span:nth-child(3) {
+		background-image: var(--detektyw-figura-obserwacja);
+		animation-delay: 14s;
+	}
+
+	/*
+	 * Tekst hero zaczyna się tam, gdzie zaczyna się szyna treści.
+	 * Bez tego sekcja pełnoszerokościowa odmierza wcięcie od krawędzi okna
+	 * (5vw), więc na ekranie 2560 px tekst startował przy 128 px, a treść
+	 * niżej przy 736 px — i to właśnie czytało się jako „przyklejone do lewej”.
+	 */
+	.detektyw-hero > :not(.detektyw-figury) {
+		max-width: min(100%, 38rem);
+		margin-left: max(0px, calc((100% - 68rem) / 2)) !important;
+	}
+
+	/*
+	 * Podpis siedzi wewnątrz warstwy z ujęciem, więc przenika razem z nim —
+	 * nie trzeba synchronizować dwóch animacji. Blok jest dekoracyjny
+	 * (aria-hidden na kontenerze): te same nazwy usług są niżej na stronie
+	 * jako pełnoprawna treść z odnośnikami, więc czytnik ekranu niczego
+	 * nie traci, a nie słyszy tekstu zmieniającego się co siedem sekund.
+	 */
+	.detektyw-figury b {
+		position: absolute;
+		/* ta sama wartość co globalny margines strony — podpis kończy się
+		   równo z prawą krawędzią szyny treści, a nie przy krawędzi ekranu */
+		right: clamp(1rem, 5vw, 2.5rem);
+		bottom: 1.4rem;
+		max-width: 13rem;
+		font-family: var(--wp--preset--font-family--heading);
+		font-size: 0.82rem;
+		font-weight: 500;
+		line-height: 1.3;
+		letter-spacing: 0.14em;
+		text-align: right;
+		text-transform: uppercase;
+		color: var(--wp--preset--color--contrast);
+		text-shadow: 0 1px 10px rgba(35, 31, 32, 0.9);
+	}
+
+	.detektyw-figury i {
+		display: block;
+		margin-bottom: 0.45rem;
+		font-size: 0.72rem;
+		font-style: normal;
+		letter-spacing: 0.2em;
+		color: var(--wp--preset--color--accent);
+	}
+
+	/* Krótka kreska nad numerem — ten sam znak co nad nagłówkami sekcji */
+	.detektyw-figury i::before {
+		content: "";
+		display: inline-block;
+		width: 1.6rem;
+		height: 2px;
+		margin-right: 0.55rem;
+		vertical-align: 0.22em;
+		background: var(--wp--preset--color--accent);
+	}
+}
+
+/* Krótkie przenikanie (ok. 0,7 s). Przy dwóch dużych sylwetkach dłuższe
+   nakładanie czyta się jak podwójna ekspozycja, a nie jak zmiana ujęcia. */
+@keyframes detektyw-figury {
+	0% {
+		opacity: 0;
+	}
+
+	3.5% {
+		opacity: 1;
+	}
+
+	33% {
+		opacity: 1;
+	}
+
+	36.5% {
+		opacity: 0;
+	}
+
+	100% {
+		opacity: 0;
+	}
+}
+
+/* Bez animacji zostaje jedno, statyczne ujęcie */
+@media (prefers-reduced-motion: reduce) and (min-width: 900px) {
+	.detektyw-figury span {
+		animation: none;
+	}
+
+	.detektyw-figury span:nth-child(1) {
+		opacity: 1;
+	}
+}
+
+/* ===========================================================================
+   NAROŻNIKI KADROWANIA
+   Ten sam motyw co w logo i w celowniku pod kursorem: ramka skanera.
+   Zastępuje zwykłą kreskę nad kaflem — jest bardziej charakterystyczna
+   i spina identyfikację w całość.
+   =========================================================================== */
+
+.detektyw-ramka {
+	position: relative;
+}
+
+.detektyw-ramka::before,
+.detektyw-ramka::after {
+	content: "";
+	position: absolute;
+	width: 14px;
+	height: 14px;
+	border-color: var(--wp--preset--color--accent);
+	border-style: solid;
+	opacity: 0.5;
+	transition: opacity 0.25s ease, width 0.25s ease, height 0.25s ease;
+	pointer-events: none;
+}
+
+.detektyw-ramka::before {
+	top: 0;
+	left: 0;
+	border-width: 2px 0 0 2px;
+}
+
+.detektyw-ramka::after {
+	right: 0;
+	bottom: 0;
+	border-width: 0 2px 2px 0;
+}
+
+.detektyw-ramka:hover::before,
+.detektyw-ramka:hover::after,
+.detektyw-ramka:focus-within::before,
+.detektyw-ramka:focus-within::after {
+	width: 22px;
+	height: 22px;
+	opacity: 1;
+}
+
+/* Blok kontaktowy ma większe narożniki — jest większy */
+.detektyw-cta.detektyw-ramka::before,
+.detektyw-cta.detektyw-ramka::after {
+	width: 22px;
+	height: 22px;
+}
+
+/* ===========================================================================
+   DROBIAZGI TYPOGRAFICZNE
+   =========================================================================== */
+
+/* Kreska akcentu nad nagłówkiem sekcji — porządkuje rytm strony */
+.entry-content > .wp-block-group > h2::before {
+	content: "";
+	display: block;
+	width: 2.5rem;
+	height: 2px;
+	margin-bottom: 1rem;
+	background: var(--wp--preset--color--accent);
+}
+
+/* Cyfry o równej szerokości: numer telefonu nie „skacze” przy zmianie stanu */
+.detektyw-tel,
+.detektyw-trust-bar li {
+	font-variant-numeric: tabular-nums;
+}
+
+/* Niskie ekrany (laptopy z dużą ilością chromu przeglądarki): upraszczamy
+   sekcję hero, żeby pasek uprawnień i podpis ujęcia zmieściły się nad
+   zgięciem. Zachęta do przewinięcia znika — jej rolę przejmuje wtedy sam
+   widoczny pasek, który pokazuje, że strona ma ciąg dalszy. */
+@media (min-width: 900px) and (max-height: 760px) {
+	.detektyw-scroll-cue {
+		display: none;
+	}
+
+	.detektyw-hero > * {
+		margin-block-start: 0.7rem !important;
+	}
+}
+
+/* ===========================================================================
+   DROBIAZGI WYKOŃCZENIOWE
+   =========================================================================== */
+
+/* Zaznaczenie tekstu w barwach marki */
+::selection {
+	background: var(--wp--preset--color--accent);
+	color: var(--wp--preset--color--base);
+}
+
+/* Pasek przewijania dopasowany do ciemnego motywu */
+html {
+	scrollbar-color: var(--wp--preset--color--border) var(--wp--preset--color--base);
+}
+
+/* FAQ: cały wiersz reaguje na kursor, nie tylko sam tekst */
+.wp-block-details {
+	transition: background-color 0.2s ease;
+}
+
+.wp-block-details:hover,
+.wp-block-details[open] {
+	background-color: rgba(46, 42, 43, 0.55);
+}
+
+.wp-block-details summary {
+	padding-block: 0.85rem;
+	padding-inline: 0.9rem 3rem;
+}
+
+.wp-block-details > *:not(summary) {
+	padding-inline: 0.9rem;
+	padding-bottom: 0.6rem;
+}
+
+.wp-block-details summary::after {
+	right: 1.1rem;
+	top: 1.15rem;
+}
+
+/* Przyciski: delikatna reakcja na naciśnięcie i płynne podkreślenie linków */
+.wp-element-button {
+	transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.12s ease;
+}
+
+.wp-element-button:active {
+	transform: translateY(1px);
+}
+
+:where(main) a:where(:not(.wp-element-button)) {
+	transition: color 0.15s ease, text-decoration-color 0.15s ease;
+	text-decoration-color: color-mix(in srgb, var(--wp--preset--color--accent) 45%, transparent);
+}
+
+:where(main) a:where(:not(.wp-element-button)):hover {
+	text-decoration-color: currentColor;
+}
+
+/* Telefon w nagłówku bez podkreślenia — jest już wyróżniony kolorem i krojem */
+.detektyw-tel a {
+	text-decoration: none;
+	border-bottom: 2px solid color-mix(in srgb, var(--wp--preset--color--accent) 40%, transparent);
+	transition: border-color 0.2s ease;
+}
+
+.detektyw-tel a:hover,
+.detektyw-tel a:focus-visible {
+	border-bottom-color: var(--wp--preset--color--accent);
+}
+
+/* Stopka: więcej powietrza między kolumnami a paskiem znaków */
+footer.wp-block-template-part .detektyw-znaki {
+	border-top: 1px solid var(--wp--preset--color--border);
+	padding-top: var(--wp--preset--spacing--30, 1.5rem);
+}
+
+/* Karty wpisów: obrazek i treść obok siebie, na wąskich ekranach jeden pod drugim */
+.detektyw-wpis .wp-block-post-featured-image img {
+	display: block;
+	width: 100%;
+	height: auto;
+	border-radius: 2px;
+}
+
+/* Obrazki wpisów są niższe i przycięte od góry. „object-position: bottom”
+   zostawia dolną część kadru — tam siedzi sygnet marki i pasek akcentu. */
+.wp-block-post-featured-image img {
+	aspect-ratio: 24 / 9;
+	object-fit: cover;
+	object-position: 50% 100%;
+}
+
+@media (max-width: 600px) {
+	.detektyw-wpis {
+		flex-wrap: wrap !important;
+	}
+
+	.detektyw-wpis > .wp-block-column {
+		flex-basis: 100% !important;
+	}
+}
+
+/* ===========================================================================
+   UŁATWIENIA DOSTĘPU
+   Panel przy prawej krawędzi, na wysokości środka okna — nie zasłania
+   paska uprawnień pod sekcją hero ani przyciszonego paska u dołu.
+   =========================================================================== */
+
+html {
+	font-size: calc(100% * var(--detektyw-skala, 1));
+}
+
+.detektyw-a11y {
+	position: fixed;
+	top: 50%;
+	right: 0;
+	z-index: 9990;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	transform: translateY(-50%);
+	border: 1px solid var(--wp--preset--color--border);
+	border-right: 0;
+	border-radius: 3px 0 0 3px;
+	background: var(--wp--preset--color--surface);
+	overflow: hidden;
+}
+
+.detektyw-a11y button {
+	width: 2.9rem;
+	height: 2.9rem;
+	border: 0;
+	background: transparent;
+	color: var(--wp--preset--color--contrast);
+	font-family: var(--wp--preset--font-family--heading);
+	font-size: 1rem;
+	font-weight: 600;
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.detektyw-a11y button sup {
+	font-size: 0.7em;
+	vertical-align: super;
+}
+
+.detektyw-a11y button:hover,
+.detektyw-a11y button:focus-visible {
+	background: var(--wp--preset--color--accent);
+	color: var(--wp--preset--color--base);
+}
+
+.detektyw-a11y button[aria-pressed="true"] {
+	background: var(--wp--preset--color--accent);
+	color: var(--wp--preset--color--base);
+}
+
+.screen-reader-text {
+	position: absolute !important;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+	.detektyw-a11y {
+		top: auto;
+		bottom: 4.5rem;
+		transform: none;
+	}
+
+	.detektyw-a11y button {
+		width: 2.5rem;
+		height: 2.5rem;
+	}
+}
+
+/* ---------------------------------------------------------------------------
+   TRYB WYSOKIEGO KONTRASTU
+   Podmieniamy same zmienne palety, więc wszystkie komponenty przechodzą
+   na nowe barwy bez osobnych reguł. Zdjęcia tła znikają — przy maksymalnym
+   kontraście liczy się jednoznaczność tekstu, nie klimat.
+   --------------------------------------------------------------------------- */
+
+html[data-kontrast] {
+	--wp--preset--color--base: #000000;
+	--wp--preset--color--contrast: #ffffff;
+	--wp--preset--color--heading: #ffffff;
+	--wp--preset--color--accent: #ffe14d;
+	--wp--preset--color--accent-2: #ffe14d;
+	--wp--preset--color--surface: #101010;
+	--wp--preset--color--border: #ffffff;
+	--wp--preset--color--muted: #eaeaea;
+}
+
+html[data-kontrast] body,
+html[data-kontrast] .detektyw-hero,
+html[data-kontrast] .has-surface-background-color {
+	background-image: none !important;
+}
+
+html[data-kontrast] .detektyw-hero::before,
+html[data-kontrast] .detektyw-figury,
+html[data-kontrast] .detektyw-reticle {
+	display: none !important;
+}
+
+html[data-kontrast] :where(main, footer) a:where(:not(.wp-element-button)) {
+	text-decoration: underline;
+	text-decoration-thickness: 2px;
+	text-underline-offset: 0.15em;
+}
+
+html[data-kontrast] .detektyw-ramka::before,
+html[data-kontrast] .detektyw-ramka::after {
+	opacity: 1;
+}
+
+html[data-kontrast] img,
+html[data-kontrast] .wp-block-post-featured-image img {
+	filter: grayscale(1) contrast(1.15);
+}
+
+/* ===========================================================================
+   INFORMACJA O PLIKACH COOKIES
+   Kompaktowa karta przy PRAWEJ dolnej krawędzi. Dwie poprzednie wersje były
+   złe z konkretnych powodów: karta po lewej leżała na przycisku „Zadzwoń”,
+   a pasek na całą szerokość zasłaniał pozycję „Licencja detektywistyczna”
+   w pasku uprawnień (ta stoi w lewej kolumnie siatki). Karta po prawej
+   omija jedno i drugie. Pokazuje się dopiero po zejściu z pierwszego ekranu.
+   =========================================================================== */
+
+.detektyw-cookies {
+	position: fixed;
+	right: 1rem;
+	bottom: 1rem;
+	left: auto;
+	z-index: 9991;
+	width: min(23rem, calc(100vw - 5.5rem));
+	padding: 1rem 1.15rem;
+	border: 1px solid var(--wp--preset--color--border);
+	border-top: 2px solid var(--wp--preset--color--accent);
+	border-radius: 3px;
+	background: rgba(35, 31, 32, 0.97);
+	box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6);
+	animation: detektyw-cookies-wejscie 0.35s ease both;
+}
+
+@supports (backdrop-filter: blur(10px)) {
+	.detektyw-cookies {
+		background: rgba(35, 31, 32, 0.88);
+		backdrop-filter: blur(12px);
+	}
+}
+
+.detektyw-cookies p {
+	margin: 0 0 0.8rem;
+	color: var(--wp--preset--color--muted);
+	font-size: 0.8rem;
+	line-height: 1.5;
+}
+
+.detektyw-cookies .wp-element-button {
+	padding: 0.42rem 1rem;
+	font-size: 0.8rem;
+}
+
+/* Nad paskiem wersji podglądowej i obok panelu ułatwień dostępu */
+body:has(.detektyw-podglad) .detektyw-cookies {
+	bottom: 3.1rem;
+}
+
+@media (max-width: 600px) {
+	.detektyw-cookies {
+		right: 0.75rem;
+		bottom: 4.6rem;
+		width: min(22rem, calc(100vw - 1.5rem));
+	}
+}
+
+@keyframes detektyw-cookies-wejscie {
+	from {
+		opacity: 0;
+		transform: translateY(0.8rem);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.detektyw-cookies {
+		animation: none;
+	}
+}
+
+/* Zdjęcia redakcyjne na stronie „O nas”: kadr panoramiczny bez ściskania.
+   Dwa z tych zdjęć są pionowe — object-fit je przycina, a nie deformuje. */
+.detektyw-foto img {
+	display: block;
+	width: 100%;
+	height: auto;
+	aspect-ratio: 21 / 9;
+	object-fit: cover;
+	border-radius: 2px;
+}
+
+.detektyw-foto figcaption {
+	margin-top: 0.6rem;
+}
+
+/* ===========================================================================
+   OTWARTE MENU MA PIERWSZEŃSTWO
+   Zabezpieczenie na wypadek innej kolejności warstw w przeglądarce:
+   przy otwartym menu chowamy własne elementy pływające, żeby żaden z nich
+   nie mógł przejąć dotknięcia zamiast pozycji menu.
+   =========================================================================== */
+
+html:has(.wp-block-navigation__responsive-container.is-menu-open) .detektyw-a11y,
+html:has(.wp-block-navigation__responsive-container.is-menu-open) .detektyw-cookies,
+html:has(.wp-block-navigation__responsive-container.is-menu-open) .detektyw-reticle {
+	display: none !important;
+}
+
+/* Pola dotykowe w nakładce: minimum 44 px wysokości i brak opóźnienia
+   podwójnego dotknięcia na iOS. */
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-item > a,
+.wp-block-navigation__responsive-container.is-menu-open .wp-block-navigation-submenu__toggle {
+	display: flex;
+	align-items: center;
+	min-height: 44px;
+	touch-action: manipulation;
+}
+
+/* Pole dotykowe 44 px powiększa przycisk, więc ikona musi zostać w nim
+   wyśrodkowana — bez tego 24-pikselowa ikona lądowała przy górnej krawędzi,
+   czyli 10 px wyżej niż numer telefonu obok.
+   Świadomie NIE ustawiamy tu display: rdzeń przełącza go zapytaniami
+   medialnymi (none na desktopie, flex na mobile) i nadpisanie pokazałoby
+   hamburgera także na dużych ekranach. */
+.wp-block-navigation__responsive-container-open,
+.wp-block-navigation__responsive-container-close {
+	align-items: center;
+	justify-content: center;
+	min-width: 44px;
+	min-height: 44px;
+	padding: 0;
+	touch-action: manipulation;
+}
+
+.wp-block-navigation__responsive-container-open svg,
+.wp-block-navigation__responsive-container-close svg {
+	display: block;
+	width: 26px;
+	height: 26px;
+}
